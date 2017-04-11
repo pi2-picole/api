@@ -18,7 +18,7 @@ The following packages are required regardless your choice of using or not a vm.
 - `Postgres 9.5`
 
 This project is **NOT** backwards compatible, so if you try to run on previous versions
-of either Django or Python, there is no guarantee that it will run correctly
+of either Django or Python, there is no guarantee that it will run correctly.
 
 
 ### Virtual Machine
@@ -50,8 +50,8 @@ vagrant@vagrant:~$ python3 -m venv <my_virtual_env>
 After that and on the following acceses run:
 ```shel
 vagrant@vagrant:~$ source <my_virtual_env>/bin/activate
-(<my_virtual_env>) vagrant@vagrant:~$ cd api
-(<my_virtual_env>) vagrant@vagrant:~/api$ pip install -r requirements.txt
+(<my_virtual_env>) vagrant@vagrant:~$ cd api/picole
+(<my_virtual_env>) vagrant@vagrant:~/api/picole$ pip install -r requirements.txt
 ```
 
 Run the server with:
@@ -74,7 +74,7 @@ Be sure to run with *pip3*
 Django handles the creation of the database tables and columns, so you should **NEVER**
 do them manually, unless you are 100% sure of what you are doing.
 Problems related to that usually mean that we didn't tell django to update the database
-after creating/altering models and their attributes. Try running:
+after creating/altering models and their attributes. Try running (on the picole folder):
 ```shell
 $ ./manage.py makemigrations
 $ ./manage.py migrate
@@ -91,7 +91,7 @@ You probably have to install [VirtualBox](https://www.virtualbox.org/wiki/Downlo
 
 ### Packages
 
-If a python package is not found, install the requirements (from the root folder of this repository):
+If a python package is not found, install the requirements (from the picole folder):
 
 ```shell
 $ pip install -r requirements.txt
