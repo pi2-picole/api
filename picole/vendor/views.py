@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from vendor.models import Popsicle, Machine, Location, Stock, Transaction
+from vendor.serializers import PopsicleSerializer
+#, MachineSerializer, LocationSerializer, StockSerializer, TransactionSerializer
 
-# Create your views here.
+class PopsicleViewSet(viewsets.ModelViewSet):
+	queryset = Popsicle.objects.all()
+	serializer_class = PopsicleSerializer
