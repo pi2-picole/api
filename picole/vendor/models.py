@@ -8,6 +8,7 @@ class Popsicle(models.Model):
 
 class Machine(models.Model):
 	is_active = models.BooleanField(default=True)
+	label = models.CharField(max_length=25, default="")	
 
 
 class Location(models.Model):
