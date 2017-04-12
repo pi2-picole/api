@@ -37,6 +37,12 @@ This will give you a vm with Python 3.5.2, Django 1.11 and PostgreSQL 9.5 instal
 ### Database
 On the first time you set the environment up (after running vagrant ssh or installing postgres by your own), create a user and database on the database by running the `create_db.sql` in the postgres prompt as `postgres` user.
 
+```
+$ sudo su - postgres
+$ cd /home/vagrant/api/
+$ psql -f create_db.sql
+$ exit
+```
 
 ### Python Environment
 
