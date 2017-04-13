@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 from vendor.models import Popsicle, Machine, Location, Stock, Transaction
@@ -61,10 +61,36 @@ class MachineViewSet(viewsets.ModelViewSet):
 		return response
 
 
-class LocationViewSet(viewsets.ReadOnlyModelViewSet):
+class LocationViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
 	"""Endpoints to handle Location"""
 	queryset = Location.objects.all()
 	serializer_class = LocationSerializer
+
+	def create(self, request):
+		"""Create new location for machines.
+
+		If machine's location has the same latitude and longitude, given the
+		precision, it won't be updated.
+
+		Required Params:
+		- **latitude**: {String} Vertical location with four decimal places precision
+		- **longitude**: {String} Horizontal location with four decimal places precision
+		- **machine**: {PK (int)} ID from machine"""
+
+		longitude = request.data["longitude"][:-3]
+		latitude = request.data["latitude"][:-3]
+
+		try:
+			machine = Machine.objects.get(id=request.data["machine"])
+			loc = machine.locations.last()
+			if not (loc.latitude.startswith(latitude) and loc.longitude.startswith(longitude)):
+				response = super().create(request)
+			else:
+				response = Response(status=status.HTTP_200_OK)
+		except Machine.DoesNotExist:
+			response = Response("Invalid Machine", status=status.HTTP_400_BAD_REQUEST)
+
+		return response
 
 
 class StockViewSet(viewsets.ModelViewSet):
