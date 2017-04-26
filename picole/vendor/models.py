@@ -37,7 +37,8 @@ class Stock(models.Model):
 	machine = models.ForeignKey(
 		Machine,
 		on_delete=models.DO_NOTHING,
-		limit_choices_to={'is_active': True}
+		limit_choices_to={'is_active': True},
+        related_name="stock"
 	)
 	updated_at = models.DateTimeField(auto_now_add=True)
 
