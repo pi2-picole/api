@@ -109,7 +109,7 @@ class StockViewSet(viewsets.ModelViewSet):
     serializer_class = StockSerializer
 
 
-class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
+class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Transaction"""
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
