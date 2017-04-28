@@ -2,9 +2,11 @@ from django.db import models
 
 # Create your models here.
 class Popsicle(models.Model):
-	flavor = models.CharField(max_length=25, default="")
+	flavor = models.CharField(max_length=25, default="", unique=True)
 	is_active = models.BooleanField(default=True)
 
+	def __str__(self):
+		return self.flavor
 
 class Machine(models.Model):
 	is_active = models.BooleanField(default=True)
