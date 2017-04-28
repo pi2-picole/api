@@ -8,6 +8,7 @@ class Popsicle(models.Model):
 
 class Machine(models.Model):
 	is_active = models.BooleanField(default=True)
+	label = models.CharField(max_length=25, default="")
 
 
 class Location(models.Model):
@@ -16,9 +17,13 @@ class Location(models.Model):
 	machine = models.ForeignKey(
 		Machine,
 		on_delete=models.DO_NOTHING,
-		limit_choices_to={'is_active': True}
+		limit_choices_to={'is_active': True},
+		related_name="locations"
 	)
 	updated_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return "#machine: {} (lat:{},lon:{}) at {}".format(self.machine.id, self.latitude, self.longitude, self.updated_at)
 
 
 class Stock(models.Model):
@@ -32,7 +37,8 @@ class Stock(models.Model):
 	machine = models.ForeignKey(
 		Machine,
 		on_delete=models.DO_NOTHING,
-		limit_choices_to={'is_active': True}
+		limit_choices_to={'is_active': True},
+        related_name="stock"
 	)
 	updated_at = models.DateTimeField(auto_now_add=True)
 
