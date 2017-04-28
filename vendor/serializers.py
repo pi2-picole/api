@@ -10,8 +10,9 @@ class PopsicleSerializer(serializers.ModelSerializer):
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = "__all__"
         model = Location
+        extra_kwargs = {"machine": {"write_only": True}}
+        exclude = ('id',)
 
 
 class StockSerializer(serializers.ModelSerializer):
@@ -28,8 +29,16 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class MachineSerializer(serializers.ModelSerializer):
-    stock = StockSerializer(many=True, read_only=True)
+    stocks = StockSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        machine = dict(data)
+        machine["location"] = data["locations"][-1]
+        machine.pop("locations")
+        return machine
+
     class Meta:
         fields = "__all__"
         model = Machine

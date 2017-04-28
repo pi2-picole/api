@@ -65,7 +65,7 @@ class MachineViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
         return response
 
 
-class LocationViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
@@ -87,8 +87,8 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
             message = 'Longitude and Latitude must be at least {} characters long'.format(self.MIN_SIZE)
             return Response(message,status=status.HTTP_400_BAD_REQUEST)
 
-        longitude = request.data["longitude"][:-3]
-        latitude = request.data["latitude"][:-3]
+        longitude = request.data["longitude"][:-2]
+        latitude = request.data["latitude"][:-2]
 
         try:
             machine = Machine.objects.get(id=request.data["machine"])
