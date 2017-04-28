@@ -54,7 +54,7 @@ vagrant@vagrant:~$ python3 -m venv <my_virtual_env>
 ```
 
 After that and on the following acceses run:
-```shel
+```shell
 vagrant@vagrant:~$ source <my_virtual_env>/bin/activate
 (<my_virtual_env>) vagrant@vagrant:~$ cd api
 (<my_virtual_env>) vagrant@vagrant:~/api$ pip install -r requirements.txt
@@ -72,6 +72,14 @@ $ [sudo] pip3 install -r requirements.txt
 ```
 Be sure to run with *pip3*
 
+
+### Heroku
+
+To deploy (temporarily) to [the Heroku app](https://picole-pi2.herokuapp.com/)
+merge your branch to the branch heroku_deploy. After that, change your settings.py
+to accept default database as **sqlite3** (uncomment the lines there and comment the
+ones from PostgreSQL). Commit and push the change, it will automatically update
+the app.
 
 ## Troubleshooting
 
@@ -119,5 +127,5 @@ vagrant@vagrant:~$ source path/to/<my_virtual_env>/bin/activate
 ```shell
 $ sudo su - postgres
 postgres@vagrant$ psql
-postgres=# <run_create_db.sql>
+postgres=# //run create_db.sql
 ```
