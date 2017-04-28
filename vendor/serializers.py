@@ -23,6 +23,20 @@ class StockSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    def validate_quantity(self, value):
+        if value > 0:
+            return value
+        else:
+            raise serializers.ValidationError("Quantity of popsicles MUST be greater than zero.")
+
+    def to_representation(self, obj):
+        data = {
+            "is_purchase": obj.is_purchase,
+            "amount": obj.quantity,
+            "total": obj.quantity * obj.popsicle.price
+        }
+        return data
+
     class Meta:
         fields = "__all__"
         model = Transaction
