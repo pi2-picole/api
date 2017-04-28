@@ -56,8 +56,8 @@ vagrant@vagrant:~$ python3 -m venv <my_virtual_env>
 After that and on the following acceses run:
 ```shel
 vagrant@vagrant:~$ source <my_virtual_env>/bin/activate
-(<my_virtual_env>) vagrant@vagrant:~$ cd api/picole
-(<my_virtual_env>) vagrant@vagrant:~/api/picole$ pip install -r requirements.txt
+(<my_virtual_env>) vagrant@vagrant:~$ cd api
+(<my_virtual_env>) vagrant@vagrant:~/api$ pip install -r requirements.txt
 ```
 
 Run the server with:
@@ -80,7 +80,7 @@ Be sure to run with *pip3*
 Django handles the creation of the database tables and columns, so you should **NEVER**
 do them manually, unless you are 100% sure of what you are doing.
 Problems related to that usually mean that we didn't tell django to update the database
-after creating/altering models and their attributes. Try running (on the picole folder):
+after creating/altering models and their attributes. Try running (where your `manage.py`):
 ```shell
 $ ./manage.py makemigrations
 $ ./manage.py migrate
@@ -121,4 +121,3 @@ $ sudo su - postgres
 postgres@vagrant$ psql
 postgres=# <run_create_db.sql>
 ```
-
