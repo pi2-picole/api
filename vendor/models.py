@@ -2,9 +2,12 @@ from django.db import models
 
 # Create your models here.
 class Popsicle(models.Model):
-	flavor = models.CharField(max_length=25, default="")
+	flavor = models.CharField(max_length=25, default="", unique=True)
+	price = models.DecimalField(max_digits=5, decimal_places=2, default=1.0)
 	is_active = models.BooleanField(default=True)
 
+	def __str__(self):
+		return "{} R$ {}".format(self.flavor, self.price)
 
 class Machine(models.Model):
 	is_active = models.BooleanField(default=True)
@@ -35,7 +38,6 @@ class Stock(models.Model):
 		on_delete=models.DO_NOTHING,
 		limit_choices_to={'is_active': True}
 	)
-	price = models.DecimalField(max_digits=5, decimal_places=2, default=1.0)
 	amount = models.PositiveSmallIntegerField(default=0)
 	machine = models.ForeignKey(
 		Machine,
