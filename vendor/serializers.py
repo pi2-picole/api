@@ -49,7 +49,11 @@ class MachineSerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         data = super().to_representation(obj)
         machine = dict(data)
-        machine["location"] = data["locations"][-1]
+        if len(data["locations"]) > 0:
+            machine["location"] = data["locations"][-1]
+        else:
+            machine["location"] = None
+
         machine.pop("locations")
         return machine
 
