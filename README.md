@@ -90,7 +90,7 @@ do them manually, unless you are 100% sure of what you are doing.
 Problems related to that usually mean that we didn't tell django to update the database
 after creating/altering models and their attributes. Try running (where your `manage.py`):
 ```shell
-$ ./manage.py makemigrations
+$ ./manage.py makemigrations vendor [other apps]
 $ ./manage.py migrate
 ```
 Always run these commands after altering anything on your models.

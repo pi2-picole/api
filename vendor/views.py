@@ -1,3 +1,4 @@
+from django.db.utils import IntegrityError
 from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
@@ -65,7 +66,7 @@ class MachineViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
         return response
 
 
-class LocationViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
@@ -87,8 +88,8 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
             message = 'Longitude and Latitude must be at least {} characters long'.format(self.MIN_SIZE)
             return Response(message,status=status.HTTP_400_BAD_REQUEST)
 
-        longitude = request.data["longitude"][:-3]
-        latitude = request.data["latitude"][:-3]
+        longitude = request.data["longitude"][:-2]
+        latitude = request.data["latitude"][:-2]
 
         try:
             machine = Machine.objects.get(id=request.data["machine"])
@@ -103,13 +104,56 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
         return response
 
 
-class StockViewSet(viewsets.ModelViewSet):
-    """Endpoints to handle Stock"""
-    queryset = Stock.objects.all()
-    serializer_class = StockSerializer
-
-
 class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Transaction"""
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+
+    def create(self, request):
+        data = request.data
+        try:
+            stock = Stock.objects.get(popsicle_id=int(data["popsicle"]), machine_id=int(data["machine"]))
+            response = self.update_stock(data, stock, request)
+        except Stock.DoesNotExist:
+            response = self.create_stock(data, request)
+        return response
+
+    def update_stock(self, data, stock, request):
+        response = None
+
+        if data["is_purchase"] or data["is_withdraw"]:
+            if stock.amount - int(data["quantity"]) >= 0:
+                stock.amount -= int(data["quantity"])
+            else:
+                msg = "Not enough popsicles. There is only {} left.".format(stock.amount)
+                response = Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            if int(data["quantity"]) > 0:
+                stock.amount += int(data["quantity"])
+            else:
+                response = Response("Cannot subtract popsicles while adding to the stock", status=status.HTTP_400_BAD_REQUEST)
+
+
+        if response is None:
+            stock.save()
+            response = super().create(request)
+
+        return response
+
+    def create_stock(self, data, request):
+        if not data["is_withdraw"]:
+            data["is_purchase"] = False
+            stock_data = {
+                "popsicle_id": data["popsicle"],
+                "machine_id": data["machine"],
+                "amount": data["quantity"],
+            }
+            try:
+                stock = Stock.objects.create(**stock_data)
+                response = super().create(request)
+            except IntegrityError:
+                response = Response("Popsicle does not exist.", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            response = Response("Can't withdraw from empty stock", status=status.HTTP_400_BAD_REQUEST)
+
+        return response

@@ -2,13 +2,19 @@ from django.db import models
 
 # Create your models here.
 class Popsicle(models.Model):
-	flavor = models.CharField(max_length=25, default="")
+	flavor = models.CharField(max_length=25, default="", unique=True)
+	price = models.DecimalField(max_digits=5, decimal_places=2, default=1.0)
 	is_active = models.BooleanField(default=True)
 
+	def __str__(self):
+		return "{} R$ {}".format(self.flavor, self.price)
 
 class Machine(models.Model):
 	is_active = models.BooleanField(default=True)
 	label = models.CharField(max_length=25, default="")
+
+	def __str__(self):
+		return "{}'s machine: #{} {}".format(self.label, self.id, self.locations.last())
 
 
 class Location(models.Model):
@@ -23,7 +29,7 @@ class Location(models.Model):
 	updated_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
-		return "#machine: {} (lat:{},lon:{}) at {}".format(self.machine.id, self.latitude, self.longitude, self.updated_at)
+		return "(lat:{},lon:{}) at {}".format(self.latitude, self.longitude, self.updated_at)
 
 
 class Stock(models.Model):
@@ -32,13 +38,12 @@ class Stock(models.Model):
 		on_delete=models.DO_NOTHING,
 		limit_choices_to={'is_active': True}
 	)
-	price = models.DecimalField(max_digits=5, decimal_places=2, default=1.0)
 	amount = models.PositiveSmallIntegerField(default=0)
 	machine = models.ForeignKey(
 		Machine,
 		on_delete=models.DO_NOTHING,
 		limit_choices_to={'is_active': True},
-        related_name="stock"
+        related_name="stocks"
 	)
 	updated_at = models.DateTimeField(auto_now_add=True)
 
