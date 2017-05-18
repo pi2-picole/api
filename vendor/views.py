@@ -2,9 +2,10 @@ from django.db.utils import IntegrityError
 from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
-from vendor.models import Popsicle, Machine, Location, Stock, Transaction
+from rest_framework.permissions import IsAdminUser
+from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
 from vendor.serializers import (PopsicleSerializer, MachineSerializer,
-    LocationSerializer, StockSerializer, TransactionSerializer)
+    LocationSerializer, StockSerializer, TransactionSerializer, UserSerializer)
 
 class PopsicleViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
                     mixins.UpdateModelMixin):
@@ -41,6 +42,7 @@ class MachineViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
     """Endpoints to handle Machine"""
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
+    permission_classes = (IsAdminUser, )
 
     @detail_route(methods=['post'])
     def deactivate(self, request, *args, **kwargs):
@@ -157,3 +159,9 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin)
             response = Response("Can't withdraw from empty stock", status=status.HTTP_400_BAD_REQUEST)
 
         return response
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminUser, )
