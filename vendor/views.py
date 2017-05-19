@@ -5,7 +5,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAdminUser
 from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
 from vendor.serializers import (PopsicleSerializer, MachineSerializer,
-    LocationSerializer, StockSerializer, TransactionSerializer)
+    LocationSerializer, StockSerializer, TransactionSerializer, UserSerializer)
 import requests
 import json
 
