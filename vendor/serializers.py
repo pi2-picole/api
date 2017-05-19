@@ -16,7 +16,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class StockSerializer(serializers.ModelSerializer):
-    popsicle = serializers.StringRelatedField()
+    popsicle = PopsicleSerializer()
     class Meta:
         fields = "__all__"
         model = Stock

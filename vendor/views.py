@@ -5,7 +5,9 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAdminUser
 from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
 from vendor.serializers import (PopsicleSerializer, MachineSerializer,
-    LocationSerializer, StockSerializer, TransactionSerializer, UserSerializer)
+    LocationSerializer, StockSerializer, TransactionSerializer)
+import requests
+import json
 
 class PopsicleViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
                     mixins.UpdateModelMixin):
@@ -160,6 +162,56 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin)
             response = Response("Can't withdraw from empty stock", status=status.HTTP_400_BAD_REQUEST)
 
         return response
+
+
+class PurchaseViewSet(viewsets.ViewSet):
+    def create(self, request):
+        """Create a new purchase.
+
+        **machine_id**: Int
+
+        **popsicles** Array of dictionaries (objects). Each dict has to have these keys:
+        flavor, quantity, price, popsicle_id.
+
+        Ex:
+        ```
+        {
+            "machine_id": 1,
+            "popsicles": [
+                { "quantity":1, "flavor": "Chocolate", "price": "150", "popsicle_id": 1 },
+                { "quantity":2, "flavor": "Coco", "price": "100", "popsicle_id": 2 }
+            ]
+        }
+        ```
+        """
+        items = []
+        for pop in request.data["popsicles"]:
+            item = {
+                "Name": pop["flavor"],
+                "Description": "Picole",
+                "UnitPrice": pop["price"],
+                "Quantity": pop["quantity"],
+                "Type": "Asset",
+            }
+            items.append(item)
+
+        data = {
+            "SoftDescriptor": "Picole",
+            "Cart": {
+                "Items": items
+            },
+            "Shipping": {
+                "Type": "WithoutShippingPickUp",
+            },
+        }
+
+        headers = {"Content-Type": "application/json", "MerchantId": "43c539f0-1366-41e6-a59e-1b611e7d43c0"}
+        url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders"
+        r = requests.post(url, json=data, headers=headers)
+
+        text = json.loads(r.text)
+
+        return Response(text['settings'], status=r.status_code)
 
 
 class UserViewSet(viewsets.ModelViewSet):
