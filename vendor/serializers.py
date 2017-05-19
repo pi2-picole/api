@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from vendor.models import Popsicle, Machine, Location, Stock, Transaction
+from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
 
 
 class PopsicleSerializer(serializers.ModelSerializer):
@@ -60,3 +60,16 @@ class MachineSerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
         model = Machine
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = User
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user

@@ -2,7 +2,8 @@ from django.db.utils import IntegrityError
 from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
-from vendor.models import Popsicle, Machine, Location, Stock, Transaction
+from rest_framework.permissions import IsAdminUser
+from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
 from vendor.serializers import (PopsicleSerializer, MachineSerializer,
     LocationSerializer, StockSerializer, TransactionSerializer)
 import requests
@@ -43,6 +44,7 @@ class MachineViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
     """Endpoints to handle Machine"""
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
+    permission_classes = (IsAdminUser, )
 
     @detail_route(methods=['post'])
     def deactivate(self, request, *args, **kwargs):
@@ -72,6 +74,7 @@ class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
+    permission_classes = ()
     MIN_SIZE = 10
 
     def create(self, request):
@@ -209,3 +212,9 @@ class PurchaseViewSet(viewsets.ViewSet):
         text = json.loads(r.text)
 
         return Response(text['settings'], status=r.status_code)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminUser, )
