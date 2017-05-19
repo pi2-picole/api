@@ -157,3 +157,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     )
 }
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': False,
+    'VALIDATOR_URL': None,
+}

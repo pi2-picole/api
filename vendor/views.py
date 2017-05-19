@@ -72,6 +72,7 @@ class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
+    permission_classes = ()
     MIN_SIZE = 10
 
     def create(self, request):
