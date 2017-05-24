@@ -44,7 +44,7 @@ class MachineViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
     """Endpoints to handle Machine"""
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
-    permission_classes = (IsAdminUser, )
+    # permission_classes = (IsAdminUser, )
 
     @detail_route(methods=['post'])
     def deactivate(self, request, *args, **kwargs):
@@ -113,6 +113,8 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin)
     """Endpoints to handle Transaction"""
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+    permission_classes = (IsAdminUser, )
+
 
     def create(self, request):
         data = request.data
