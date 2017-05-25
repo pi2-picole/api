@@ -5,7 +5,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAdminUser
 from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
 from vendor.serializers import (PopsicleSerializer, MachineSerializer,
-    LocationSerializer, StockSerializer, TransactionSerializer, UserSerializer)
+    LocationSerializer, StockSerializer, UserSerializer)
 import requests
 import json
 
@@ -109,61 +109,62 @@ class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         return response
 
 
-class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
-    """Endpoints to handle Transaction"""
-    queryset = Transaction.objects.all()
-    serializer_class = TransactionSerializer
-    permission_classes = (IsAdminUser, )
+# class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+#     """Endpoints to handle Transaction"""
+#     pass
+    # queryset = Transaction.objects.all()
+    # serializer_class = TransactionSerializer
+    # permission_classes = (IsAdminUser, )
 
 
-    def create(self, request):
-        data = request.data
-        try:
-            stock = Stock.objects.get(popsicle_id=int(data["popsicle"]), machine_id=int(data["machine"]))
-            response = self.update_stock(data, stock, request)
-        except Stock.DoesNotExist:
-            response = self.create_stock(data, request)
-        return response
+    # def create(self, request):
+    #     data = request.data
+    #     try:
+    #         stock = Stock.objects.get(popsicle_id=int(data["popsicle"]), machine_id=int(data["machine"]))
+    #         response = self.update_stock(data, stock, request)
+    #     except Stock.DoesNotExist:
+    #         response = self.create_stock(data, request)
+    #     return response
 
-    def update_stock(self, data, stock, request):
-        response = None
+    # def update_stock(self, data, stock, request):
+    #     response = None
 
-        if data["is_purchase"] or data["is_withdraw"]:
-            if stock.amount - int(data["quantity"]) >= 0:
-                stock.amount -= int(data["quantity"])
-            else:
-                msg = "Not enough popsicles. There is only {} left.".format(stock.amount)
-                response = Response(msg, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            if int(data["quantity"]) > 0:
-                stock.amount += int(data["quantity"])
-            else:
-                response = Response("Cannot subtract popsicles while adding to the stock", status=status.HTTP_400_BAD_REQUEST)
+    #     if data["is_withdraw"]:
+    #         if stock.amount - int(data["amount"]) >= 0:
+    #             stock.amount -= int(data["amount"])
+    #         else:
+    #             msg = "Not enough popsicles. There is only {} left.".format(stock.amount)
+    #             response = Response(msg, status=status.HTTP_400_BAD_REQUEST)
+    #     else:
+    #         if int(data["amount"]) > 0:
+    #             stock.amount += int(data["amount"])
+    #         else:
+    #             response = Response("Cannot subtract popsicles while adding to the stock", status=status.HTTP_400_BAD_REQUEST)
 
 
-        if response is None:
-            stock.save()
-            response = super().create(request)
+    #     if response is None:
+    #         stock.save()
+    #         response = super().create(request)
 
-        return response
+    #     return response
 
-    def create_stock(self, data, request):
-        if not data["is_withdraw"]:
-            data["is_purchase"] = False
-            stock_data = {
-                "popsicle_id": data["popsicle"],
-                "machine_id": data["machine"],
-                "amount": data["quantity"],
-            }
-            try:
-                stock = Stock.objects.create(**stock_data)
-                response = super().create(request)
-            except IntegrityError:
-                response = Response("Popsicle does not exist.", status=status.HTTP_400_BAD_REQUEST)
-        else:
-            response = Response("Can't withdraw from empty stock", status=status.HTTP_400_BAD_REQUEST)
+    # def create_stock(self, data, request):
+    #     if not data["is_withdraw"]:
+    #         data["is_purchase"] = False
+    #         stock_data = {
+    #             "popsicle_id": data["popsicle"],
+    #             "machine_id": data["machine"],
+    #             "amount": data["amount"],
+    #         }
+    #         try:
+    #             stock = Stock.objects.create(**stock_data)
+    #             response = super().create(request)
+    #         except IntegrityError:
+    #             response = Response("Popsicle does not exist.", status=status.HTTP_400_BAD_REQUEST)
+    #     else:
+    #         response = Response("Can't withdraw from empty stock", status=status.HTTP_400_BAD_REQUEST)
 
-        return response
+    #     return response
 
 
 class PurchaseViewSet(viewsets.ViewSet):
@@ -173,15 +174,15 @@ class PurchaseViewSet(viewsets.ViewSet):
         **machine_id**: Int
 
         **popsicles** Array of dictionaries (objects). Each dict has to have these keys:
-        flavor, quantity, price, popsicle_id.
+        flavor, amount, price, popsicle_id.
 
         Ex:
         ```
         {
             "machine_id": 1,
             "popsicles": [
-                { "quantity":1, "flavor": "Chocolate", "price": "150", "popsicle_id": 1 },
-                { "quantity":2, "flavor": "Coco", "price": "100", "popsicle_id": 2 }
+                { "amount":1, "flavor": "Chocolate", "price": "150", "popsicle_id": 1 },
+                { "amount":2, "flavor": "Coco", "price": "100", "popsicle_id": 2 }
             ]
         }
         ```
@@ -192,7 +193,7 @@ class PurchaseViewSet(viewsets.ViewSet):
                 "Name": pop["flavor"],
                 "Description": "Picole",
                 "UnitPrice": pop["price"],
-                "Quantity": pop["quantity"],
+                "Quantity": pop["amount"],
                 "Type": "Asset",
             }
             items.append(item)

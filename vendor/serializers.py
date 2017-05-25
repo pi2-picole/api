@@ -16,30 +16,34 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class StockSerializer(serializers.ModelSerializer):
-    popsicle = PopsicleSerializer()
+    popsicle = serializers.SlugRelatedField(
+        slug_field='flavor',
+        queryset=Popsicle.objects.all()
+    )
     class Meta:
         fields = "__all__"
         model = Stock
 
 
-class TransactionSerializer(serializers.ModelSerializer):
-    def validate_quantity(self, value):
-        if value > 0:
-            return value
-        else:
-            raise serializers.ValidationError("Quantity of popsicles MUST be greater than zero.")
+# class TransactionSerializer(serializers.ModelSerializer):
+#     def validate_amount(self, value):
+#         if value > 0:
+#             return value
+#         else:
+#             raise serializers.ValidationError("Amount of popsicles MUST be greater than zero.")
 
-    def to_representation(self, obj):
-        data = {
-            "is_purchase": obj.is_purchase,
-            "amount": obj.quantity,
-            "total": obj.quantity * obj.popsicle.price
-        }
-        return data
+#     def to_representation(self, obj):
+#         total = (obj.amount * int(obj.popsicle.price))/100 # Price is in cents
+#         data = {
+#             "is_purchase": obj.is_purchase,
+#             "amount": obj.amount,
+#             "total": total
+#         }
+#         return data
 
-    class Meta:
-        fields = "__all__"
-        model = Transaction
+#     class Meta:
+#         fields = "__all__"
+#         model = Transaction
 
 
 class MachineSerializer(serializers.ModelSerializer):
