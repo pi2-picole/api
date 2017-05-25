@@ -65,6 +65,7 @@ class LocationViewSet(viewsets.GenericViewSet):
     queryset = models.Location.objects.all()
     serializer_class = serializers.LocationSerializer
     MIN_SIZE = 10
+    permission_classes = ()
 
     def create(self, request):
         """Create new location for machines.
@@ -101,16 +102,19 @@ class LocationViewSet(viewsets.GenericViewSet):
 class PopsicleRemovalViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     queryset = models.PopsicleRemoval.objects.all()
     serializer_class = serializers.PopsicleRemovalSerializer
+    permission_classes = ()
 
 
 class PopsicleEntryViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     queryset = models.PopsicleEntry.objects.all()
     serializer_class = serializers.PopsicleEntrySerializer
+    permission_classes = ()
 
 
 class PurchaseViewSet(viewsets.GenericViewSet):
     queryset = models.Purchase.objects.all()
     serializer_class = serializers.PurchaseSerializer
+    permission_classes = ()
 
     def create(self, request):
         """Create a new purchase.
@@ -143,13 +147,11 @@ class PurchaseViewSet(viewsets.GenericViewSet):
             }
             items.append(item)
 
-            purchase = Purchase(
+            models.Purchase.objects.create(
                 popsicle_id=pop["popsicle_id"],
                 amount=pop["amount"],
-                machine=request.data["machine_id"]
+                machine_id=request.data["machine_id"]
             )
-
-        models.Purchase.objects.bulk_create(purchases)
 
         data = {
             "SoftDescriptor": "Picole",
