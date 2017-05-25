@@ -1,16 +1,16 @@
 from rest_framework import serializers
-from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
+from vendor import models
 
 
 class PopsicleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
-        model = Popsicle
+        model = models.Popsicle
 
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Location
+        model = models.Location
         extra_kwargs = {"machine": {"write_only": True}}
         exclude = ('id',)
 
@@ -18,32 +18,29 @@ class LocationSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     popsicle = serializers.SlugRelatedField(
         slug_field='flavor',
-        queryset=Popsicle.objects.all()
+        queryset=models.Popsicle.objects.all()
     )
     class Meta:
         fields = "__all__"
-        model = Stock
+        model = models.Stock
 
 
-# class TransactionSerializer(serializers.ModelSerializer):
-#     def validate_amount(self, value):
-#         if value > 0:
-#             return value
-#         else:
-#             raise serializers.ValidationError("Amount of popsicles MUST be greater than zero.")
+class PurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = models.Purchase
 
-#     def to_representation(self, obj):
-#         total = (obj.amount * int(obj.popsicle.price))/100 # Price is in cents
-#         data = {
-#             "is_purchase": obj.is_purchase,
-#             "amount": obj.amount,
-#             "total": total
-#         }
-#         return data
 
-#     class Meta:
-#         fields = "__all__"
-#         model = Transaction
+class PopsicleEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = models.PopsicleEntry
+
+
+class PopsicleRemovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = models.PopsicleRemoval
 
 
 class MachineSerializer(serializers.ModelSerializer):
@@ -63,13 +60,13 @@ class MachineSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = "__all__"
-        model = Machine
+        model = models.Machine
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
-        model = User
+        model = models.User
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -77,3 +74,19 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+
+# class TransactionSerializer(serializers.ModelSerializer):
+#     def to_representation(self, obj):
+#         total = (obj.amount * int(obj.popsicle.price))/100 # Price is in cents
+#         data = {
+#             "is_purchase": obj.is_purchase,
+#             "amount": obj.amount,
+#             "total": total
+#         }
+#         return data
+
+#     class Meta:
+#         fields = "__all__"
+#         model = models.Transaction
+

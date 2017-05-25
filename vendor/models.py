@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MinValueValidator
 
 # Create your models here.
 class Popsicle(models.Model):
@@ -61,7 +62,9 @@ class Transaction(models.Model):
         on_delete=models.DO_NOTHING,
         limit_choices_to={'is_active': True}
     )
-    amount = models.PositiveSmallIntegerField(default=0)
+    amount = models.PositiveSmallIntegerField(
+        default=0, validators=[MinValueValidator(1)]
+    )
     machine = models.ForeignKey(
         Machine,
         on_delete=models.DO_NOTHING,

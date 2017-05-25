@@ -1,80 +1,69 @@
 from django.db.utils import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAdminUser
-from vendor.models import Popsicle, Machine, Location, Stock, Transaction, User
-from vendor.serializers import (PopsicleSerializer, MachineSerializer,
-    LocationSerializer, StockSerializer, UserSerializer)
+from vendor import models, serializers
+
 import requests
 import json
 
-class PopsicleViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
+class GenericModelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
                     mixins.UpdateModelMixin):
+
+    @detail_route(methods=['delete'])
+    def deactivate(self, request, *args, **kwargs):
+        """Set active attribute as true"""
+        return self.change_status(False, kwargs["pk"])
+
+    @detail_route(methods=['post'])
+    def activate(self, request, *args, **kwargs):
+        """Set active attribute as true"""
+        return self.change_status(True, kwargs["pk"])
+
+    def change_status(self, active, pk):
+        model = self.get_class()
+        try:
+            obj = model.objects.get(id=pk)
+            obj.is_active = active
+            obj.save()
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist:
+            response = Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            response = Response(
+                "Something wrong happened, check with the system admin.",
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return response
+
+    def get_class(self):
+        raise NotImplementedError('Subclass must implement this')
+
+class PopsicleViewSet(GenericModelViewSet):
     """Endpoints to handle Popsicle"""
-    queryset = Popsicle.objects.all()
-    serializer_class = PopsicleSerializer
+    queryset = models.Popsicle.objects.all()
+    serializer_class = serializers.PopsicleSerializer
 
-    @detail_route(methods=['post'])
-    def deactivate(self, request, *args, **kwargs):
-        """Set active attribute as true"""
-        return self.change_status(False, kwargs["pk"])
-
-    @detail_route(methods=['post'])
-    def activate(self, request, *args, **kwargs):
-        """Set active attribute as true"""
-        return self.change_status(True, kwargs["pk"])
-
-    def change_status(self, active, popsicle_id):
-        try:
-            pop = Popsicle.objects.get(id=popsicle_id)
-            pop.is_active = active
-            pop.save()
-            response = Response(status=status.HTTP_204_NO_CONTENT)
-        except Popsicle.DoesNotExist:
-            response = Response(status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            response = Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return response
+    def get_class(self):
+        return models.Popsicle
 
 
-class MachineViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
-                    mixins.UpdateModelMixin):
+class MachineViewSet(GenericModelViewSet):
     """Endpoints to handle Machine"""
-    queryset = Machine.objects.all()
-    serializer_class = MachineSerializer
-    # permission_classes = (IsAdminUser, )
+    queryset = models.Machine.objects.all()
+    serializer_class = serializers.MachineSerializer
 
-    @detail_route(methods=['post'])
-    def deactivate(self, request, *args, **kwargs):
-        """Set active attribute as true"""
-        return self.change_status(False, kwargs["pk"])
-
-    @detail_route(methods=['post'])
-    def activate(self, request, *args, **kwargs):
-        """Set active attribute as true"""
-        return self.change_status(True, kwargs["pk"])
-
-    def change_status(self, active, mach_id):
-        try:
-            machine = Machine.objects.get(id=mach_id)
-            machine.is_active = active
-            machine.save()
-            response = Response(status=status.HTTP_204_NO_CONTENT)
-        except Machine.DoesNotExist:
-            response = Response(status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            response = Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return response
+    def get_class(self):
+        return models.Machine
 
 
-class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+class LocationViewSet(viewsets.GenericViewSet):
     """Endpoints to handle Location"""
-    queryset = Location.objects.all()
-    serializer_class = LocationSerializer
-    permission_classes = ()
+    queryset = models.Location.objects.all()
+    serializer_class = serializers.LocationSerializer
     MIN_SIZE = 10
 
     def create(self, request):
@@ -109,65 +98,20 @@ class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         return response
 
 
-# class TransactionViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
-#     """Endpoints to handle Transaction"""
-#     pass
-    # queryset = Transaction.objects.all()
-    # serializer_class = TransactionSerializer
-    # permission_classes = (IsAdminUser, )
+class PopsicleRemovalViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+    queryset = models.PopsicleRemoval.objects.all()
+    serializer_class = serializers.PopsicleRemovalSerializer
 
 
-    # def create(self, request):
-    #     data = request.data
-    #     try:
-    #         stock = Stock.objects.get(popsicle_id=int(data["popsicle"]), machine_id=int(data["machine"]))
-    #         response = self.update_stock(data, stock, request)
-    #     except Stock.DoesNotExist:
-    #         response = self.create_stock(data, request)
-    #     return response
-
-    # def update_stock(self, data, stock, request):
-    #     response = None
-
-    #     if data["is_withdraw"]:
-    #         if stock.amount - int(data["amount"]) >= 0:
-    #             stock.amount -= int(data["amount"])
-    #         else:
-    #             msg = "Not enough popsicles. There is only {} left.".format(stock.amount)
-    #             response = Response(msg, status=status.HTTP_400_BAD_REQUEST)
-    #     else:
-    #         if int(data["amount"]) > 0:
-    #             stock.amount += int(data["amount"])
-    #         else:
-    #             response = Response("Cannot subtract popsicles while adding to the stock", status=status.HTTP_400_BAD_REQUEST)
+class PopsicleEntryViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+    queryset = models.PopsicleEntry.objects.all()
+    serializer_class = serializers.PopsicleEntrySerializer
 
 
-    #     if response is None:
-    #         stock.save()
-    #         response = super().create(request)
+class PurchaseViewSet(viewsets.GenericViewSet):
+    queryset = models.Purchase.objects.all()
+    serializer_class = serializers.PurchaseSerializer
 
-    #     return response
-
-    # def create_stock(self, data, request):
-    #     if not data["is_withdraw"]:
-    #         data["is_purchase"] = False
-    #         stock_data = {
-    #             "popsicle_id": data["popsicle"],
-    #             "machine_id": data["machine"],
-    #             "amount": data["amount"],
-    #         }
-    #         try:
-    #             stock = Stock.objects.create(**stock_data)
-    #             response = super().create(request)
-    #         except IntegrityError:
-    #             response = Response("Popsicle does not exist.", status=status.HTTP_400_BAD_REQUEST)
-    #     else:
-    #         response = Response("Can't withdraw from empty stock", status=status.HTTP_400_BAD_REQUEST)
-
-    #     return response
-
-
-class PurchaseViewSet(viewsets.ViewSet):
     def create(self, request):
         """Create a new purchase.
 
@@ -188,6 +132,7 @@ class PurchaseViewSet(viewsets.ViewSet):
         ```
         """
         items = []
+        purchases = []
         for pop in request.data["popsicles"]:
             item = {
                 "Name": pop["flavor"],
@@ -197,6 +142,14 @@ class PurchaseViewSet(viewsets.ViewSet):
                 "Type": "Asset",
             }
             items.append(item)
+
+            purchase = Purchase(
+                popsicle_id=pop["popsicle_id"],
+                amount=pop["amount"],
+                machine=request.data["machine_id"]
+            )
+
+        models.Purchase.objects.bulk_create(purchases)
 
         data = {
             "SoftDescriptor": "Picole",
@@ -218,6 +171,6 @@ class PurchaseViewSet(viewsets.ViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+    queryset = models.User.objects.all()
+    serializer_class = serializers.UserSerializer
     permission_classes = (IsAdminUser, )
