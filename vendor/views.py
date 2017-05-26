@@ -2,9 +2,11 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route
-from rest_framework.permissions import IsAdminUser
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import detail_route, list_route
+from rest_framework.permissions import IsAdminUser, AllowAny
 from vendor import models, serializers
+from django.contrib.auth import authenticate
 
 import requests
 import json
@@ -175,4 +177,26 @@ class PurchaseViewSet(viewsets.GenericViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = models.User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (IsAdminUser, )
+
+    class UserPermission(IsAdminUser):
+        def has_permission(self, request, view):
+            if view.action == 'login':
+                return True
+            else:
+                super().has_permission(request, view)
+
+    permission_classes = (UserPermission, )
+
+
+    @list_route(methods=['post'])
+    def login(self, request, *args, **kwargs):
+        user = authenticate(request, username=request.data['username'],
+                         password=request.data['password'])
+
+        data = {
+            'token': user.auth_token.key,
+            'is_staff': user.is_staff,
+        }
+
+        return Response(data, status=500)
+
