@@ -72,26 +72,26 @@ class LocationViewSet(viewsets.GenericViewSet):
     def create(self, request):
         """Create new location for machines.
 
-        If machine's location has the same latitude and longitude, given the
+        If machine's location has the same lat and lng, given the
         precision, it won't be updated.
 
         Required Params:
-        - **latitude**: {String} Vertical location with seven decimal places precision
-        - **longitude**: {String} Horizontal location with seven decimal places precision
+        - **lat**: {String} Vertical location with seven decimal places precision
+        - **lng**: {String} Horizontal location with seven decimal places precision
         - **machine**: {PK (int)} ID from machine"""
 
-        if len(request.data['longitude']) < self.MIN_SIZE or \
-                len(request.data['latitude']) < self.MIN_SIZE:
+        if len(request.data['lng']) < self.MIN_SIZE or \
+                len(request.data['lat']) < self.MIN_SIZE:
             message = 'Longitude and Latitude must be at least {} characters long'.format(self.MIN_SIZE)
             return Response(message,status=status.HTTP_400_BAD_REQUEST)
 
-        longitude = request.data["longitude"][:-2]
-        latitude = request.data["latitude"][:-2]
+        lng = request.data["lng"][:-2]
+        lat = request.data["lat"][:-2]
 
         try:
             machine = Machine.objects.get(id=request.data["machine"])
             loc = machine.locations.last()
-            if (not loc) or not (loc.latitude.startswith(latitude) and loc.longitude.startswith(longitude)):
+            if (not loc) or not (loc.lat.startswith(lat) and loc.lng.startswith(lng)):
                 response = super().create(request)
             else:
                 response = Response(status=status.HTTP_204_NO_CONTENT)

@@ -30,7 +30,7 @@ class Machine(models.Model):
 
 
 class Location(models.Model):
-    ltd = models.CharField(max_length=15, default="")
+    lat = models.CharField(max_length=15, default="")
     lng = models.CharField(max_length=15, default="")
     machine = models.ForeignKey(
         Machine,
@@ -41,7 +41,7 @@ class Location(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return "(lat:{},lon:{}) at {}".format(self.latitude, self.longitude, self.updated_at)
+        return "(lat:{},lng:{}) at {}".format(self.lat, self.lng, self.updated_at)
 
 
 class Stock(models.Model):
