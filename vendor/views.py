@@ -62,7 +62,7 @@ class MachineViewSet(GenericModelViewSet):
         return models.Machine
 
 
-class LocationViewSet(viewsets.GenericViewSet):
+class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
     queryset = models.Location.objects.all()
     serializer_class = serializers.LocationSerializer
@@ -89,13 +89,13 @@ class LocationViewSet(viewsets.GenericViewSet):
         lat = request.data["lat"][:-2]
 
         try:
-            machine = Machine.objects.get(id=request.data["machine"])
+            machine = models.Machine.objects.get(id=request.data["machine"])
             loc = machine.locations.last()
             if (not loc) or not (loc.lat.startswith(lat) and loc.lng.startswith(lng)):
                 response = super().create(request)
             else:
                 response = Response(status=status.HTTP_204_NO_CONTENT)
-        except Machine.DoesNotExist:
+        except models.Machine.DoesNotExist:
             response = Response("Invalid Machine", status=status.HTTP_400_BAD_REQUEST)
 
         return response
