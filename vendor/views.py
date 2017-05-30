@@ -183,7 +183,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if view.action == 'login':
                 return True
             else:
-                super().has_permission(request, view)
+                return super().has_permission(request, view)
 
     permission_classes = (UserPermission, )
 
