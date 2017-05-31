@@ -198,5 +198,5 @@ class UserViewSet(viewsets.ModelViewSet):
             'is_staff': user.is_staff,
         }
 
-        return Response(data, status=500)
+        return Response(data)
 
