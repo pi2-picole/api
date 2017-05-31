@@ -70,7 +70,12 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = User(**validated_data)
+        if 'groups' in validated_data.keys():
+            validated_data.pop('groups')
+        if 'user_permissions' in validated_data.keys():
+            validated_data.pop('user_permissions')
+
+        user = models.User(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
         return user
