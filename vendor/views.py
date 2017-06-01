@@ -196,6 +196,7 @@ class UserViewSet(viewsets.ModelViewSet):
         data = {
             'token': user.auth_token.key,
             'is_staff': user.is_staff,
+            'id': user.id,
         }
 
         return Response(data)

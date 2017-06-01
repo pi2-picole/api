@@ -24,6 +24,7 @@ class Popsicle(models.Model):
 class Machine(models.Model):
     is_active = models.BooleanField(default=True)
     label = models.CharField(max_length=25, default="")
+    seller = models.ForeignKey(User, related_name='machines', null=True)
 
     def __str__(self):
         return "{}'s machine: #{} {}".format(self.label, self.id, self.locations.last())

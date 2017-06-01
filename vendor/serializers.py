@@ -46,6 +46,10 @@ class PopsicleRemovalSerializer(serializers.ModelSerializer):
 class MachineSerializer(serializers.ModelSerializer):
     stocks = StockSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
+    # seller = serializers.SlugRelatedField(
+    #     slug_field='username',
+    #     queryset=models.User.objects.all()
+    # )
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -64,6 +68,8 @@ class MachineSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    machines = MachineSerializer(many=True, read_only=True)
+
     class Meta:
         fields = "__all__"
         model = models.User
