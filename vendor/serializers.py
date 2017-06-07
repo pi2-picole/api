@@ -16,10 +16,8 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class StockSerializer(serializers.ModelSerializer):
-    popsicle = serializers.SlugRelatedField(
-        slug_field='flavor',
-        queryset=models.Popsicle.objects.all()
-    )
+    popsicle = PopsicleSerializer(read_only=True)
+
     class Meta:
         fields = "__all__"
         model = models.Stock
@@ -46,10 +44,6 @@ class PopsicleRemovalSerializer(serializers.ModelSerializer):
 class MachineSerializer(serializers.ModelSerializer):
     stocks = StockSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
-    # seller = serializers.SlugRelatedField(
-    #     slug_field='username',
-    #     queryset=models.User.objects.all()
-    # )
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -85,19 +79,3 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-
-
-# class TransactionSerializer(serializers.ModelSerializer):
-#     def to_representation(self, obj):
-#         total = (obj.amount * int(obj.popsicle.price))/100 # Price is in cents
-#         data = {
-#             "is_purchase": obj.is_purchase,
-#             "amount": obj.amount,
-#             "total": total
-#         }
-#         return data
-
-#     class Meta:
-#         fields = "__all__"
-#         model = models.Transaction
-

@@ -25,9 +25,8 @@ class GenericModelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
         return self.change_status(True, kwargs["pk"])
 
     def change_status(self, active, pk):
-        model = self.get_class()
         try:
-            obj = model.objects.get(id=pk)
+            obj = self.queryset.model.objects.get(id=pk)
             obj.is_active = active
             obj.save()
             response = Response(status=status.HTTP_204_NO_CONTENT)
@@ -41,25 +40,17 @@ class GenericModelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
 
         return response
 
-    def get_class(self):
-        raise NotImplementedError('Subclass must implement this')
 
 class PopsicleViewSet(GenericModelViewSet):
     """Endpoints to handle Popsicle"""
-    queryset = models.Popsicle.objects.all()
+    queryset = models.Popsicle.objects.filter(is_active=True)
     serializer_class = serializers.PopsicleSerializer
-
-    def get_class(self):
-        return models.Popsicle
 
 
 class MachineViewSet(GenericModelViewSet):
     """Endpoints to handle Machine"""
-    queryset = models.Machine.objects.all()
+    queryset = models.Machine.objects.filter(is_active=True)
     serializer_class = serializers.MachineSerializer
-
-    def get_class(self):
-        return models.Machine
 
 
 class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
