@@ -189,7 +189,8 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         ```
         {
             "purchases": [2, 3]
-        }```
+        }
+        ```
         """
         purchases = models.Purchase.objects.filter(id__in=request.data['purchases'])
         popsicles = {}
@@ -218,7 +219,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
     class UserPermission(IsAdminUser):
         def has_permission(self, request, view):
+            pk = 0
+            if 'pk' in view.kwargs.keys():
+                pk = view.kwargs['pk']
+
             if view.action == 'login':
+                return True
+            elif view.action == 'retrieve' and not request.user.is_anonymous() and int(pk) == request.user.id:
                 return True
             else:
                 return super().has_permission(request, view)
