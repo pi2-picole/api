@@ -25,6 +25,7 @@ class Machine(models.Model):
     is_active = models.BooleanField(default=True)
     label = models.CharField(max_length=25, default="")
     seller = models.ForeignKey(User, related_name='machines', null=True)
+    ip = models.GenericIPAddressField(protocol='IPv4', null=True)
 
     def __str__(self):
         return "{}'s machine: #{} {}".format(self.label, self.id, self.locations.last())
@@ -33,6 +34,7 @@ class Machine(models.Model):
 class Location(models.Model):
     lat = models.CharField(max_length=15, default="")
     lng = models.CharField(max_length=15, default="")
+    temperature = models.FloatField(null=True)
     machine = models.ForeignKey(
         Machine,
         on_delete=models.DO_NOTHING,
@@ -48,13 +50,13 @@ class Location(models.Model):
 class Stock(models.Model):
     popsicle = models.ForeignKey(
         Popsicle,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         limit_choices_to={'is_active': True}
     )
     amount = models.PositiveSmallIntegerField(default=0)
     machine = models.ForeignKey(
         Machine,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         limit_choices_to={'is_active': True},
         related_name="stocks"
     )

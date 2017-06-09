@@ -53,7 +53,7 @@ class MachineViewSet(GenericModelViewSet):
     serializer_class = serializers.MachineSerializer
 
 
-class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+class SetupViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
     queryset = models.Location.objects.all()
     serializer_class = serializers.LocationSerializer
@@ -67,27 +67,37 @@ class LocationViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         precision, it won't be updated.
 
         Required Params:
-        - **lat**: {String} Vertical location with seven decimal places precision
-        - **lng**: {String} Horizontal location with seven decimal places precision
-        - **machine**: {PK (int)} ID from machine"""
+        - **lat**: String. Vertical location with seven decimal places precision
+        - **lng**: String. Horizontal location with seven decimal places precision
+        - **temperature**: Float. The temperature of the machine
+        - **ip**: String. Format: XXX.XXX.XXX.XXX. The ip address of the machine
+        - **machine**: PK (int). machine's id"""
 
-        if len(request.data['lng']) < self.MIN_SIZE or \
-                len(request.data['lat']) < self.MIN_SIZE:
+        lng = request.data["lng"]
+        lat = request.data["lat"]
+
+        if len(lat) < self.MIN_SIZE or len(lng) < self.MIN_SIZE:
             message = 'Longitude and Latitude must be at least {} characters long'.format(self.MIN_SIZE)
-            return Response(message,status=status.HTTP_400_BAD_REQUEST)
-
-        lng = request.data["lng"][:-2]
-        lat = request.data["lat"][:-2]
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             machine = models.Machine.objects.get(id=request.data["machine"])
-            loc = machine.locations.last()
-            if (not loc) or not (loc.lat.startswith(lat) and loc.lng.startswith(lng)):
-                response = super().create(request)
-            else:
-                response = Response(status=status.HTTP_204_NO_CONTENT)
         except models.Machine.DoesNotExist:
-            response = Response("Invalid Machine", status=status.HTTP_400_BAD_REQUEST)
+            return Response("Invalid Machine", status=status.HTTP_400_BAD_REQUEST)
+
+        if 'ip' in request.data.keys():
+            machine.ip = request.data['ip']
+            machine.save()
+
+        lng = lng[:-2]
+        lat = lat[:-2]
+        loc = machine.locations.last()
+
+        if (loc is None) or not (loc.lat.startswith(lat) and loc.lng.startswith(lng)):
+            response = super().create(request)
+        else:
+            response = Response('Location has not changed since last time',
+                                status=status.HTTP_204_NO_CONTENT)
 
         return response
 
@@ -140,11 +150,13 @@ class PurchaseViewSet(viewsets.GenericViewSet):
             }
             items.append(item)
 
-            models.Purchase.objects.create(
+            purchase = models.Purchase.objects.create(
                 popsicle_id=pop["popsicle_id"],
                 amount=pop["amount"],
                 machine_id=request.data["machine_id"]
             )
+
+            purchases.append(purchase.id)
 
         data = {
             "SoftDescriptor": "Picole",
@@ -161,8 +173,43 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         r = requests.post(url, json=data, headers=headers)
 
         text = json.loads(r.text)
+        ret_data = {
+            'url': text['settings']['checkoutUrl'],
+            'purchases': purchases
+        }
 
-        return Response(text['settings'], status=r.status_code)
+        return Response(ret_data, status=r.status_code)
+
+    @list_route(methods=['post'])
+    def release(self, request):
+        """Release the popsicle for the user.
+
+
+        Pass an array with the ids of the purchases:
+        ```
+        {
+            "purchases": [2, 3]
+        }```
+        """
+        purchases = models.Purchase.objects.filter(id__in=request.data['purchases'])
+        popsicles = {}
+        for p in purchases:
+            # TODO: CHANGE THIS URL!!!
+            url = 'http://{}:8000/purchases/test/'.format(p.machine.ip)
+            popsicles[p.popsicle.id] = {
+                'release': p.amount,
+                'new_amount': p.machine.stocks.get(popsicle_id=p.popsicle.id).amount
+            }
+            p.lid_was_released = True
+            p.save()
+
+        requests.post(url)
+
+        return Response(popsicles)
+
+    @list_route(methods=['post'])
+    def test(self, request):
+        return Response()
 
 
 class UserViewSet(viewsets.ModelViewSet):
