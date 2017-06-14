@@ -66,7 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
     machines = serializers.PrimaryKeyRelatedField(many=True, queryset=models.Machine.objects.all())
 
     class Meta:
-        fields = ('id', 'machines', 'is_superuser', 'username', 'is_staff', )
+        fields = ('id', 'machines', 'is_superuser', 'username', 'is_staff', 'email')
         model = models.User
         extra_kwargs = {'password': {'write_only': True}}
 

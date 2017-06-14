@@ -13,7 +13,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 # Create your models here.
 class Popsicle(models.Model):
-    flavor = models.CharField(max_length=25, default="", unique=True)
+    flavor = models.CharField(max_length=25, unique=True, null=False, blank=False)
     price = models.CharField(max_length=4, default='100')
     is_active = models.BooleanField(default=True)
 
