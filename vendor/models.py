@@ -23,8 +23,8 @@ class Popsicle(models.Model):
 
 class Machine(models.Model):
     is_active = models.BooleanField(default=True)
-    label = models.CharField(max_length=25, default="")
-    seller = models.ForeignKey(User, related_name='machines', null=True)
+    label = models.CharField(max_length=50, default="")
+    seller = models.ForeignKey(User, related_name='machines', null=True, blank=True)
     ip = models.GenericIPAddressField(protocol='IPv4', null=True)
 
     def __str__(self):

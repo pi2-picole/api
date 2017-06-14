@@ -42,9 +42,34 @@ class PopsicleRemovalSerializer(serializers.ModelSerializer):
 
 
 class MachineSerializer(serializers.ModelSerializer):
-    stocks = StockSerializer(many=True)
+    stocks = StockSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
-    seller = serializers.SlugRelatedField(slug_field='username', queryset=models.User.objects.all())
+    seller = serializers.SlugRelatedField(slug_field='username',
+                                          # read_only=True
+                                          queryset=models.User.objects.all())
+
+    def create(self, validated_data):
+        user = validated_data.pop('seller')
+        machine = models.Machine(**validated_data)
+        machine.seller_id = user.id
+        machine.save()
+        return machine
+
+    def update(self, instance, validated_data):
+        if 'is_active' in validated_data.keys():
+            instance.is_active = validated_data['is_active']
+        if 'ip' in validated_data.keys():
+            instance.ip = validated_data['ip']
+        if 'label' in validated_data.keys():
+            instance.label = validated_data['label']
+
+        if 'seller' in validated_data.keys():
+            seller = validated_data.pop('seller')
+            instance.seller_id = seller.id
+
+        instance.save()
+        return instance
+
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -63,10 +88,10 @@ class MachineSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    machines = serializers.PrimaryKeyRelatedField(many=True, queryset=models.Machine.objects.all())
+    machines = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
-        fields = ('id', 'machines', 'is_superuser', 'username', 'is_staff', 'email')
+        fields = ('id', 'machines', 'is_superuser', 'username', 'is_staff', 'email', 'password')
         model = models.User
         extra_kwargs = {'password': {'write_only': True}}
 
