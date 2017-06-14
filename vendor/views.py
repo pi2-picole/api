@@ -31,7 +31,7 @@ class GenericModelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
             obj.save()
             response = Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
-            response = Response(status=status.HTTP_404_NOT_FOUND)
+            response = Response('Object not found.', status=status.HTTP_404_NOT_FOUND)
         except Exception:
             response = Response(
                 "Something wrong happened, check with the system admin.",
@@ -245,4 +245,11 @@ class UserViewSet(viewsets.ModelViewSet):
         }
 
         return Response(data)
+
+    @list_route()
+    def vendors(self, request, *args, **kwargs):
+        vendors = self.queryset.filter(is_superuser=False, is_staff=False)
+        data = self.serializer_class(vendors, many=True)
+        print(data)
+        return Response(data.data)
 

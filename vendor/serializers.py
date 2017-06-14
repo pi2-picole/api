@@ -42,8 +42,9 @@ class PopsicleRemovalSerializer(serializers.ModelSerializer):
 
 
 class MachineSerializer(serializers.ModelSerializer):
-    stocks = StockSerializer(many=True, read_only=True)
+    stocks = StockSerializer(many=True)
     locations = LocationSerializer(many=True, read_only=True)
+    seller = serializers.SlugRelatedField(slug_field='username', queryset=models.User.objects.all())
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -62,10 +63,10 @@ class MachineSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    machines = MachineSerializer(many=True, read_only=True)
+    machines = serializers.PrimaryKeyRelatedField(many=True, queryset=models.Machine.objects.all())
 
     class Meta:
-        fields = "__all__"
+        fields = ('id', 'machines', 'is_superuser', 'username', 'is_staff', )
         model = models.User
         extra_kwargs = {'password': {'write_only': True}}
 
