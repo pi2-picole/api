@@ -11,45 +11,16 @@ from django.contrib.auth import authenticate
 import requests
 import json
 
-class GenericModelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin,
-                    mixins.UpdateModelMixin):
 
-    @detail_route(methods=['delete'])
-    def deactivate(self, request, *args, **kwargs):
-        """Set active attribute as true"""
-        return self.change_status(False, kwargs["pk"])
-
-    @detail_route(methods=['post'])
-    def activate(self, request, *args, **kwargs):
-        """Set active attribute as true"""
-        return self.change_status(True, kwargs["pk"])
-
-    def change_status(self, active, pk):
-        try:
-            obj = self.queryset.model.objects.get(id=pk)
-            obj.is_active = active
-            obj.save()
-            response = Response(status=status.HTTP_204_NO_CONTENT)
-        except ObjectDoesNotExist:
-            response = Response('Object not found.', status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            response = Response(
-                "Something wrong happened, check with the system admin.",
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        return response
-
-
-class PopsicleViewSet(GenericModelViewSet):
+class PopsicleViewSet(viewsets.ModelViewSet):
     """Endpoints to handle Popsicle"""
-    queryset = models.Popsicle.objects.filter(is_active=True)
+    queryset = models.Popsicle.objects.all()
     serializer_class = serializers.PopsicleSerializer
 
 
-class MachineViewSet(GenericModelViewSet):
+class MachineViewSet(viewsets.ModelViewSet):
     """Endpoints to handle Machine"""
-    queryset = models.Machine.objects.filter(is_active=True)
+    queryset = models.Machine.objects.all()
     serializer_class = serializers.MachineSerializer
 
 

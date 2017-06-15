@@ -56,8 +56,6 @@ class MachineSerializer(serializers.ModelSerializer):
         return machine
 
     def update(self, instance, validated_data):
-        if 'is_active' in validated_data.keys():
-            instance.is_active = validated_data['is_active']
         if 'ip' in validated_data.keys():
             instance.ip = validated_data['ip']
         if 'label' in validated_data.keys():
