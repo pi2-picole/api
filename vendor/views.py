@@ -7,6 +7,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import IsAdminUser, AllowAny
 from vendor import models, serializers
 from django.contrib.auth import authenticate
+from django.db.models import Sum
 
 import requests
 import json
@@ -22,6 +23,27 @@ class MachineViewSet(viewsets.ModelViewSet):
     """Endpoints to handle Machine"""
     queryset = models.Machine.objects.all()
     serializer_class = serializers.MachineSerializer
+
+    @detail_route()
+    def graph_total(self, request, pk, *args, **kwargs):
+        machine = self.queryset.get(pk=pk)
+        data = machine.purchase_set.values('popsicle__flavor').annotate(total=Sum('amount'))
+        data = list(data)
+        for flavor in data:
+            flavor['flavor'] = flavor.pop('popsicle__flavor')
+
+        return Response(data)
+
+    @detail_route()
+    def graph_by_day(self, request, pk, *args, **kwargs):
+        machine = self.queryset.get(pk=pk)
+        data = machine.purchase_set.values('date', 'popsicle__flavor').annotate(total=Sum('amount'))
+        data = list(data)
+        for flavor in data:
+            flavor['date'] = flavor['date'].strftime("%d/%m/%y")
+            flavor['flavor'] = flavor.pop('popsicle__flavor')
+
+        return Response(data)
 
 
 class SetupViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
@@ -96,60 +118,28 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         **machine_id**: Int
 
         **popsicles** Array of dictionaries (objects). Each dict has to have these keys:
-        flavor, amount, price, popsicle_id.
+        amount, popsicle_id.
 
         Ex:
         ```
         {
             "machine_id": 1,
             "popsicles": [
-                { "amount":1, "flavor": "Chocolate", "price": "150", "popsicle_id": 1 },
-                { "amount":2, "flavor": "Coco", "price": "100", "popsicle_id": 2 }
+                { "amount":1, "popsicle_id": 1 },
+                { "amount":2, "popsicle_id": 2 }
             ]
         }
         ```
         """
-        items = []
-        purchases = []
-        for pop in request.data["popsicles"]:
-            item = {
-                "Name": pop["flavor"],
-                "Description": "Picole",
-                "UnitPrice": pop["price"],
-                "Quantity": pop["amount"],
-                "Type": "Asset",
-            }
-            items.append(item)
-
+        pops = request.data.get("popsicles", [])
+        for pop in pops:
             purchase = models.Purchase.objects.create(
                 popsicle_id=pop["popsicle_id"],
                 amount=pop["amount"],
                 machine_id=request.data["machine_id"]
             )
 
-            purchases.append(purchase.id)
-
-        data = {
-            "SoftDescriptor": "Picole",
-            "Cart": {
-                "Items": items
-            },
-            "Shipping": {
-                "Type": "WithoutShippingPickUp",
-            },
-        }
-
-        headers = {"Content-Type": "application/json", "MerchantId": "43c539f0-1366-41e6-a59e-1b611e7d43c0"}
-        url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders"
-        r = requests.post(url, json=data, headers=headers)
-
-        text = json.loads(r.text)
-        ret_data = {
-            'url': text['settings']['checkoutUrl'],
-            'purchases': purchases
-        }
-
-        return Response(ret_data, status=r.status_code)
+        return Response()
 
     @list_route(methods=['post'])
     def release(self, request):

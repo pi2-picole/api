@@ -4,6 +4,7 @@ from rest_framework.authtoken.models import Token
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator
+from datetime import date
 
 class Popsicle(models.Model):
     flavor = models.CharField(max_length=50, unique=True, null=False, blank=False)
@@ -60,11 +61,14 @@ class Transaction(models.Model):
         default=0, validators=[MinValueValidator(1)]
     )
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    date = models.DateField(default=date.today)
 
 
 class Purchase(Transaction):
     lid_was_released = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "{} - {} - {} @ #{}".format(self.popsicle, self.amount, self.date, self.machine.id)
 
 
 class PopsicleEntry(Transaction):
