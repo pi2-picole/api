@@ -157,7 +157,7 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         popsicles = {}
         for p in purchases:
             # TODO: CHANGE THIS URL!!!
-            url = 'http://{}:8000/purchases/test/'.format(p.machine.ip)
+            url = 'http://{}:8080'.format(p.machine.ip)
             popsicles[p.popsicle.id] = {
                 'release': p.amount,
                 'new_amount': p.machine.stocks.get(popsicle_id=p.popsicle.id).amount
@@ -165,7 +165,7 @@ class PurchaseViewSet(viewsets.GenericViewSet):
             p.lid_was_released = True
             p.save()
 
-        requests.post(url)
+        requests.post(url, popsicles)
 
         return Response(popsicles)
 
