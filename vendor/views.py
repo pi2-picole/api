@@ -114,32 +114,61 @@ class PurchaseViewSet(viewsets.GenericViewSet):
 
     def create(self, request):
         """Create a new purchase.
-
         **machine_id**: Int
-
         **popsicles** Array of dictionaries (objects). Each dict has to have these keys:
-        amount, popsicle_id.
-
+        flavor, amount, price, popsicle_id.
         Ex:
         ```
         {
             "machine_id": 1,
             "popsicles": [
-                { "amount":1, "popsicle_id": 1 },
-                { "amount":2, "popsicle_id": 2 }
+                { "amount":1, "flavor": "Chocolate", "price": "150", "popsicle_id": 1 },
+                { "amount":2, "flavor": "Coco", "price": "100", "popsicle_id": 2 }
             ]
         }
         ```
         """
-        pops = request.data.get("popsicles", [])
-        for pop in pops:
+        items = []
+        purchases = []
+        for pop in request.data["popsicles"]:
+            item = {
+                "Name": pop["flavor"],
+                "Description": "Picole",
+                "UnitPrice": pop["price"],
+                "Quantity": pop["amount"],
+                "Type": "Asset",
+            }
+            items.append(item)
+
             purchase = models.Purchase.objects.create(
                 popsicle_id=pop["popsicle_id"],
                 amount=pop["amount"],
                 machine_id=request.data["machine_id"]
             )
 
-        return Response()
+            purchases.append(purchase.id)
+
+        data = {
+            "SoftDescriptor": "Picole",
+            "Cart": {
+                "Items": items
+            },
+            "Shipping": {
+                "Type": "WithoutShippingPickUp",
+            },
+        }
+
+        headers = {"Content-Type": "application/json", "MerchantId": "43c539f0-1366-41e6-a59e-1b611e7d43c0"}
+        url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders"
+        r = requests.post(url, json=data, headers=headers)
+
+        text = json.loads(r.text)
+        ret_data = {
+            'url': text['settings']['checkoutUrl'],
+            'purchases': purchases
+        }
+
+        return Response(ret_data, status=r.status_code)
 
     @list_route(methods=['post'])
     def release(self, request):
@@ -156,7 +185,6 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         purchases = models.Purchase.objects.filter(id__in=request.data['purchases'])
         popsicles = {}
         for p in purchases:
-            # TODO: CHANGE THIS URL!!!
             url = 'http://{}:8080'.format(p.machine.ip)
             popsicles[p.popsicle.id] = {
                 'release': p.amount,
