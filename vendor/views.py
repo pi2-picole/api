@@ -127,10 +127,35 @@ class PurchaseViewSet(viewsets.GenericViewSet):
             "popsicles": [
                 { "amount":1, "popsicle_id": 1 },
                 { "amount":2, "popsicle_id": 2 }
-            ]
+            ],
+            "cielo_data": {
+               "MerchantOrderId":"1091935197",
+               "Payment":{
+                   "Type":"CreditCard",
+                   "Amount":20000,
+                   "Installments":1,
+                   "CreditCard":{
+                       "CardNumber":"1234123412341231",
+                       "ExpirationDate":"12/2030",
+                       "SecurityCode":"123",
+                       "Brand":"Visa"
+                   }
+               }
+           }
         }
         ```
         """
+
+        data = request.data["cielo_data"]
+        headers = {"Content-Type": "application/json",
+            # "MerchantId": "43c539f0-1366-41e6-a59e-1b611e7d43c0",
+            "MerchantId": "a95e1fd5-8b3f-4076-9b41-465cc262394d",
+            "MerchantKey": "CYRCYIOBVYVINVNQJPLQUJBIMHJLLKOYZYLNFSYP",
+        }
+        url = "https://apisandbox.cieloecommerce.cielo.com.br/1/sales/"
+        # url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders"
+        r = requests.post(url, json=data, headers=headers)
+
         pops = request.data.get("popsicles", [])
         for pop in pops:
             purchase = models.Purchase.objects.create(
