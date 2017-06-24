@@ -147,24 +147,30 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         """
 
         data = request.data["cielo_data"]
-        headers = {"Content-Type": "application/json",
+        headers = {
+            # "Content-Type": "application/json",
             # "MerchantId": "43c539f0-1366-41e6-a59e-1b611e7d43c0",
             "MerchantId": "a95e1fd5-8b3f-4076-9b41-465cc262394d",
             "MerchantKey": "CYRCYIOBVYVINVNQJPLQUJBIMHJLLKOYZYLNFSYP",
         }
         url = "https://apisandbox.cieloecommerce.cielo.com.br/1/sales/"
+
         # url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders"
         r = requests.post(url, json=data, headers=headers)
+        print(r.text)
+        print(r.status_code)
 
         pops = request.data.get("popsicles", [])
+        purchases = []
         for pop in pops:
             purchase = models.Purchase.objects.create(
                 popsicle_id=pop["popsicle_id"],
                 amount=pop["amount"],
                 machine_id=request.data["machine_id"]
             )
+            purchases.append(purchase.id)
 
-        return Response()
+        return Response(purchases, status=r.status_code)
 
     @list_route(methods=['post'])
     def release(self, request):
