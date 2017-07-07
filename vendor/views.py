@@ -185,7 +185,7 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         purchases = models.Purchase.objects.filter(id__in=request.data['purchases'])
         popsicles = {}
         for p in purchases:
-            url = 'http://{}:8080'.format(p.machine.ip)
+            url = 'https://picole.pagekite.me/'.format(p.machine.ip)
             popsicles[p.popsicle.id] = {
                 'release': p.amount,
                 'new_amount': p.machine.stocks.get(popsicle_id=p.popsicle.id).amount
