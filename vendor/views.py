@@ -193,7 +193,7 @@ class PurchaseViewSet(viewsets.GenericViewSet):
             p.lid_was_released = True
             p.save()
 
-        requests.post(url, popsicles)
+        requests.post(url, json=popsicles)
 
         return Response(popsicles)
 
