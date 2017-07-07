@@ -45,6 +45,16 @@ class MachineViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
+    @detail_route()
+    def graph_temp(self, request, pk, *args, **kwargs):
+        machine = self.queryset.get(pk=pk)
+        data = machine.temperatures.all()
+        ret = []
+        for i in data:
+            ret.append({'temp': i.temp, 'date': i.date})
+        return Response(ret)
+
+
     @list_route(methods=['post'])
     def alarm(self, request):
         url = 'http://picole.pagekite.me/alarm/'
@@ -86,6 +96,15 @@ class SetupViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         if 'ip' in request.data.keys():
             machine.ip = request.data['ip']
             machine.save()
+
+
+        if 'temp' in request.data:
+            try:
+                models.Temperature.objects.create(temp=request.data['temp'], machine=machine)
+            except Exception as e:
+                print(e)
+                pass
+
 
         lng = lng[:-2]
         lat = lat[:-2]

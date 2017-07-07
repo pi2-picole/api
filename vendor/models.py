@@ -4,7 +4,7 @@ from rest_framework.authtoken.models import Token
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator
-from datetime import date
+from datetime import date, datetime
 
 class Popsicle(models.Model):
     flavor = models.CharField(max_length=50, unique=True, null=False, blank=False)
@@ -23,10 +23,19 @@ class Machine(models.Model):
         return "{}'s machine: #{}".format(self.label, self.id, self.locations.last())
 
 
+class Temperature(models.Model):
+    temp = models.FloatField(null=True)
+    date =  models.DateTimeField(default=datetime.now)
+    machine = models.ForeignKey(
+        Machine,
+        on_delete=models.CASCADE,
+        related_name="temperatures"
+    )
+
+
 class Location(models.Model):
     lat = models.CharField(max_length=15, default="")
     lng = models.CharField(max_length=15, default="")
-    temperature = models.FloatField(null=True)
     machine = models.ForeignKey(
         Machine,
         on_delete=models.CASCADE,

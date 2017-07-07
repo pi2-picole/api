@@ -29,6 +29,12 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = models.Purchase
 
 
+class TemperatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = models.Temperature
+
+
 class PopsicleEntrySerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
