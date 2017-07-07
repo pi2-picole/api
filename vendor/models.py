@@ -17,7 +17,7 @@ class Popsicle(models.Model):
 class Machine(models.Model):
     label = models.CharField(max_length=50, default="")
     seller = models.ForeignKey(User, related_name='machines', null=True, blank=True)
-    ip = models.GenericIPAddressField(protocol='IPv4', null=True)
+    price = models.CharField(max_length=50, default='100')
 
     def __str__(self):
         return "{}'s machine: #{}".format(self.label, self.id, self.locations.last())

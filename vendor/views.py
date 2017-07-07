@@ -197,11 +197,8 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         print(request.data)
         purchases = models.Purchase.objects.filter(id__in=request.data['purchases'])
         popsicles = {}
-        print(purchases)
         for p in purchases:
-            print(p.amount)
-            url = 'http://{}:8080'.format(p.machine.ip)
-            print(url)
+            url = 'http://{}:80'.format(p.machine.ip)
             popsicles[p.popsicle.id] = {
                 'release': p.amount,
                 'new_amount': p.machine.stocks.get(popsicle_id=p.popsicle.id).amount
@@ -211,7 +208,7 @@ class PurchaseViewSet(viewsets.GenericViewSet):
 
         print(popsicles)
 
-        # requests.post(url, json=popsicles)
+        requests.post(url, json=popsicles)
 
         return Response(popsicles)
 
@@ -259,4 +256,3 @@ class UserViewSet(viewsets.ModelViewSet):
         data = self.serializer_class(vendors, many=True)
         print(data)
         return Response(data.data)
-

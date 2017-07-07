@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'corsheaders',
     'vendor',
-    'sslserver',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
