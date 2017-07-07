@@ -45,6 +45,18 @@ class MachineViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
+    @detail_route()
+    def graph_temp(self, request, pk, *args, **kwargs):
+        pass
+        # machine = self.queryset.get(pk=pk)
+        # data = machine.purchase_set.values('date', 'popsicle__flavor').annotate(total=Sum('amount'))
+        # data = list(data)
+        # for flavor in data:
+        #     flavor['date'] = flavor['date'].strftime("%d/%m/%y")
+        #     flavor['flavor'] = flavor.pop('popsicle__flavor')
+
+        # return Response(data)
+
 
 class SetupViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
@@ -160,15 +172,15 @@ class PurchaseViewSet(viewsets.GenericViewSet):
 
         headers = {"Content-Type": "application/json", "MerchantId": "43c539f0-1366-41e6-a59e-1b611e7d43c0"}
         url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders"
-        r = requests.post(url, json=data, headers=headers)
+       # r = requests.post(url, json=data, headers=headers)
 
-        text = json.loads(r.text)
+ #       text = json.loads(r.text)
         ret_data = {
-            'url': text['settings']['checkoutUrl'],
+        #    'url': text['settings']['checkoutUrl'],
             'purchases': purchases
         }
 
-        return Response(ret_data, status=r.status_code)
+        return Response(ret_data, status=200)#r.status_code)
 
     @list_route(methods=['post'])
     def release(self, request):
@@ -182,10 +194,14 @@ class PurchaseViewSet(viewsets.GenericViewSet):
         }
         ```
         """
+        print(request.data)
         purchases = models.Purchase.objects.filter(id__in=request.data['purchases'])
         popsicles = {}
+        print(purchases)
         for p in purchases:
+            print(p.amount)
             url = 'http://{}:8080'.format(p.machine.ip)
+            print(url)
             popsicles[p.popsicle.id] = {
                 'release': p.amount,
                 'new_amount': p.machine.stocks.get(popsicle_id=p.popsicle.id).amount
@@ -193,7 +209,9 @@ class PurchaseViewSet(viewsets.GenericViewSet):
             p.lid_was_released = True
             p.save()
 
-        requests.post(url, popsicles)
+        print(popsicles)
+
+        # requests.post(url, json=popsicles)
 
         return Response(popsicles)
 

@@ -26,7 +26,7 @@ SECRET_KEY = 'bare#knvs=bdk5#p-jqdke#d0$&h!pdk2!98yh+7wm=+cm0c!k'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['picole-pi2.herokuapp.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['picole-pi2.herokuapp.com', 'localhost', '127.0.0.1', '192.168.43.6', '0.0.0.0']
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'corsheaders',
     'vendor',
+    'sslserver',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

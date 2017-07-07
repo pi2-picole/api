@@ -23,10 +23,19 @@ class Machine(models.Model):
         return "{}'s machine: #{}".format(self.label, self.id, self.locations.last())
 
 
+class Temperature(models.Model):
+    temp = models.FloatField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    machine = models.ForeignKey(
+        Machine,
+        on_delete=models.CASCADE,
+        related_name="temperatures"
+    )
+
+
 class Location(models.Model):
     lat = models.CharField(max_length=15, default="")
     lng = models.CharField(max_length=15, default="")
-    temperature = models.FloatField(null=True)
     machine = models.ForeignKey(
         Machine,
         on_delete=models.CASCADE,
