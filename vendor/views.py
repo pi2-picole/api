@@ -45,6 +45,11 @@ class MachineViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
+    @list_route(methods=['post'])
+    def alarm(self, request):
+        url = 'http://picole.pagekite.me/alarm/'
+        return Response(requests.post(url))
+
 
 class SetupViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     """Endpoints to handle Location"""
